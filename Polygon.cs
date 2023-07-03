@@ -22,6 +22,33 @@ namespace Geometry
 
         }
 
+        public bool sharesEdge(Polygon polygon)
+        {
+            foreach (Line edge in this.edges)
+            {
+                foreach (Line edge2 in polygon.edges)
+                {
+                    if (edge == edge2) { return true; }
+                }
+            }
+            return false;
+        }
+
+        public bool containsVertice(Vector2 point)
+        {
+
+            foreach (Vector2 point2 in vertices)
+            {
+                if (point.Equals(point2)) { return true; }
+            }
+            return false; 
+        }
+
+        public float getAngle(Line edge1, Line edge2)
+        {
+            return 0; // to be implemented
+        }
+
         public void render(float lineWidth, UnityEngine.Color color)
         {
 
