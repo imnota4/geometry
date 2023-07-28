@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,17 +10,18 @@ namespace Geometry
     public class Line
     {
 
-        private (Vector2, Vector2) vertices;
+        private Point startPoint;
+        private Point endPoint;
         private float length;
-        private Vector2 midpoint;
+        private Point midpoint;
         private float slope;
         private GameObject rendererObject;
 
-        public Vector2 getMidpoint() { return midpoint; }
+        public Point getMidpoint() { return midpoint; }
 
         public float getLength() { return length; }
 
-        public (Vector2, Vector2) getVertices() { return vertices; }
+        public (Point, Point) getVertices() { return (startPoint, endPoint); }
 
         public float getSlope() { return slope; }
 
@@ -28,29 +30,42 @@ namespace Geometry
             return (1f / slope);
         }
 
+        public Vector3 toVector()
+        {
+            return new Vector3(endPoint.x - startPoint.x, endPoint.y - startPoint.y, endPoint.z - startPoint.z);
+        }
+
         public override string ToString() 
         { 
-            return "(" + vertices.Item1[0] + ", " + vertices.Item1[1] +") | (" + vertices.Item2[0] + ", " + vertices.Item2[1] + ")";
+            return "(" + startPoint.x + ", " + startPoint.y + ", " + startPoint.z + ") | (" + endPoint.x + ", " + endPoint.y + ", " + endPoint.z + ")";
         }
 
         public static bool operator ==(Line obj1, Line obj2)
         {
-            return ((obj1.vertices.Item1 == obj2.vertices.Item1 && obj1.vertices.Item2 == obj2.vertices.Item2) || (obj1.vertices.Item1 == obj2.vertices.Item2 && obj1.vertices.Item2 == obj2.vertices.Item1));
+            return ((obj1.startPoint == obj2.startPoint && obj1.endPoint == obj2.endPoint) || (obj1.startPoint == obj2.endPoint && obj1.endPoint == obj2.startPoint));
         }
 
         public static bool operator !=(Line obj1, Line obj2)
         {
-            return ((obj1.vertices.Item1 != obj2.vertices.Item1 || obj1.vertices.Item2 != obj2.vertices.Item2) && (obj1.vertices.Item1 != obj2.vertices.Item2 || obj1.vertices.Item2 != obj2.vertices.Item1));
+            return ((obj1.startPoint != obj2.startPoint || obj1.endPoint != obj2.endPoint) && (obj1.startPoint != obj2.endPoint || obj1.endPoint != obj2.startPoint));
         }
 
         public float getPerpendicularSlope() { return -getInverseSlope(); }
 
         public void renderLine(float width, Color color)
         {
+
+            if (rendererObject != null)
+            {
+                rendererObject.GetComponent<LineRenderer>().material.SetColor("_Color", color);
+                rendererObject.GetComponent<LineRenderer>().widthMultiplier = width;
+                return;
+
+            }
+
             rendererObject = new GameObject();
-            LineRenderer renderer = new LineRenderer();
-            renderer = rendererObject.AddComponent<LineRenderer>();
-            Vector3[] positions = new Vector3[] { new Vector3(vertices.Item1.x, vertices.Item1.y, 0), new Vector3(vertices.Item2.x, vertices.Item2.y, 0) };
+            LineRenderer renderer = rendererObject.AddComponent<LineRenderer>();
+            Vector3[] positions = new Vector3[] { new Vector3(startPoint.x, startPoint.y, 0), new Vector3(endPoint.x, endPoint.y, 0) };
             renderer.GetComponent<LineRenderer>().SetPositions(positions);
             renderer.useWorldSpace = true;
             renderer.enabled = true;
@@ -60,23 +75,39 @@ namespace Geometry
 
         public void unrender()
         {
-            rendererObject = new GameObject();
+            GameObject.Destroy(rendererObject);
         }
 
-        public Line(Vector2 vertex1, Vector2 vertex2)
+
+        // NOTE: rewrite "slope" calculations to use vector notation instead of defining the slope such that y is a function of x
+        public Line(Vector3 startpoint, Vector3 endpoint)
         {
-            vertices.Item1 = vertex1; 
-            vertices.Item2 = vertex2;
-            length = Vector2.Distance(vertices.Item1, vertices.Item2);
-            float pos1 = (vertex1.x + vertex2.x) / 2f;
-            float pos2 = (vertex1.y + vertex2.y) / 2f;
-            midpoint = new Vector2(pos1, pos2);
-            slope = ((vertex1.y - vertex2.y) / (vertex1.x - vertex2.x));
-            rendererObject = new GameObject();
-
+            this.startPoint = new Point(startpoint);
+            this.endPoint = new Point(endpoint);
+            length = Vector3.Distance(startPoint.toVector(), endPoint.toVector());
+            float pos1 = (startpoint.x + endpoint.x) / 2f;
+            float pos2 = (startpoint.y + endpoint.y) / 2f;
+            float pos3 = (startpoint.z + endpoint.z) / 2f;
+            midpoint = new Point(pos1, pos2, pos3);
+            slope = ((startpoint.y - endpoint.y) / (startpoint.x - endpoint.x));
 
 
         }
+
+        public Line(Vector2 startpoint, Vector2 endpoint)
+        {
+            this.startPoint = new Point(startpoint.x, startpoint.y);
+            this.endPoint = new Point(endpoint.x, endpoint.y);
+            length = Vector3.Distance(this.startPoint.toVector(), this.endPoint.toVector());
+            float pos1 = (startpoint.x + endpoint.x) / 2f;
+            float pos2 = (startpoint.y + endpoint.y) / 2f;
+            midpoint = new Point(pos1, pos2, 0);
+            slope = ((startpoint.y - endpoint.y) / (startpoint.x - endpoint.x));
+
+
+        }
+
+        public Line(Point startPoint, Point endPoint) :this(new Vector3(startPoint.x, startPoint.y, startPoint.z), new Vector3(endPoint.x, endPoint.y, endPoint.z)) { }
 
     }
 }

@@ -10,16 +10,16 @@ namespace Geometry
     {
 
         private List<Line> edges; // Circles do not have edges, but true circles do not exist in the programming world. 
-        private Vector2 center;
+        private Point center;
         private float radius;
 
-        public Vector2 getCenter() { return center; }
+        public Point getCenter() { return center; }
 
         public float getRadius() { return radius; }
 
-        public bool isPointWithin(Vector2 point)
+        public bool isPointWithin(Point point)
         {
-            if (Vector2.Distance(point, center) < radius) { return true; } return false;
+            if (Vector3.Distance(point.toVector(), center.toVector()) < radius) { return true; } return false;
         }
 
         public void setSteps(float steps)
@@ -59,13 +59,15 @@ namespace Geometry
         }
 
         // Construct a circle based on the location of it's center and the radius of the circle
-        public Circle(Vector2 center, float radius)
+        public Circle(Point center, float radius)
         {
             this.edges = new List<Line>();
             this.radius = radius;
             this.center = center;
             this.setSteps(100);
         }
+
+        public Circle(Vector2 center, float radius) :this(new Point(center.x, center.y), radius) { }
 
 
     }
